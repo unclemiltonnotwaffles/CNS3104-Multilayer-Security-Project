@@ -2,7 +2,7 @@
 Enterprise-Grade Multi-Layer Security Architecture: VLAN Segmentation, IPS and Site-to-Site VPN- CNS 3104 Project by 190358 (Chiwo Newa)
 # Enterprise-Grade Multi-Layer Security Architecture
 
-**CNS 3104 – Computer Networks & Security**  
+**CNS 3104 – Computer Networks & Security Project I**  
 **Student:** Chiwo Newa (Reg. No. 190358)  
 **Supervisor:** Dr. Vitalis Ozianyi  
 **Date:** May 2026
