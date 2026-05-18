@@ -4,7 +4,7 @@ Enterprise-Grade Multi-Layer Security Architecture: VLAN Segmentation, IPS and S
 
 **CNS 3104 – Computer Networks & Security**  
 **Student:** Chiwo Newa (Reg. No. 190358)  
-**Supervisor:** [Supervisor Name]  
+**Supervisor:** Dr. Vitalis Ozianyi  
 **Date:** May 2026
 
 ## Overview
