@@ -1,0 +1,107 @@
+! ============================================================
+! HQ-Switch Configuration
+! Device: Cisco IOU L2 (GNS3 Emulated)
+! Role: HQ Core Switch - VLAN Segmentation, Inter-VLAN Routing
+! Project: CNS3104 - Enterprise Multi-Layer Security
+! Student: Chiwo Newa (190358)
+! ============================================================
+
+! --- Basic Device Hardening ---
+hostname HQ-Switch
+no ip domain-lookup
+enable secret cisco123
+line console 0
+ password cisco123
+ login
+line vty 0 4
+ password cisco123
+ login
+
+! --- VLAN Definitions ---
+! Six VLANs created for HQ departmental segmentation
+vlan 10
+ name HR
+vlan 20
+ name Finance
+vlan 30
+ name IT
+vlan 40
+ name Guest
+vlan 50
+ name DMZ
+vlan 60
+ name Management
+
+! --- Trunk Port to HQ-Router ---
+! e0/0 carries all VLAN traffic to HQ-Router subinterfaces
+interface Ethernet0/0
+ description Trunk-to-HQ-Router
+ switchport trunk encapsulation dot1q
+ switchport mode trunk
+
+! --- Access Ports - End Devices ---
+! Each port assigned to its corresponding VLAN
+interface Ethernet0/1
+ description HR-PC
+ switchport mode access
+ switchport access vlan 10
+interface Ethernet0/2
+ description Finance-PC
+ switchport mode access
+ switchport access vlan 20
+interface Ethernet0/3
+ description IT-PC
+ switchport mode access
+ switchport access vlan 30
+interface Ethernet1/0
+ description Guest-PC
+ switchport mode access
+ switchport access vlan 40
+interface Ethernet1/1
+ description DMZ-PC
+ switchport mode access
+ switchport access vlan 50
+interface Ethernet1/2
+ description Mgmt-PC
+ switchport mode access
+ switchport access vlan 60
+interface Ethernet1/3
+ description Syslog-Server
+ switchport mode access
+ switchport access vlan 60
+
+! --- Layer 3 SVIs ---
+! Each SVI provides the default gateway for its VLAN
+! Note: ACLs are applied on HQ-Router subinterfaces, not here
+interface Vlan1
+ ip address 192.168.1.2 255.255.255.0
+ no shutdown
+interface Vlan10
+ ip address 192.168.10.1 255.255.255.0
+ no shutdown
+interface Vlan20
+ ip address 192.168.20.1 255.255.255.0
+ no shutdown
+interface Vlan30
+ ip address 192.168.30.1 255.255.255.0
+ no shutdown
+interface Vlan40
+ ip address 192.168.40.1 255.255.255.0
+ no shutdown
+interface Vlan50
+ ip address 192.168.50.1 255.255.255.0
+ no shutdown
+interface Vlan60
+ ip address 192.168.60.1 255.255.255.0
+ no shutdown
+
+! --- Routing ---
+! IP routing enabled for inter-VLAN routing capability
+! Default route points to HQ-Router for external traffic
+ip routing
+ip route 0.0.0.0 0.0.0.0 192.168.1.1
+
+! --- Syslog Configuration ---
+logging host 192.168.60.100
+logging trap informational
+logging on
