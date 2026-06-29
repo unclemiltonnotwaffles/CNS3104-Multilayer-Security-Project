@@ -1,0 +1,85 @@
+! ============================================================
+! Branch-Switch Configuration
+! Device: Cisco IOU L2 (GNS3 Emulated)
+! Role: Branch Core Switch - VLAN Segmentation
+! Project: CNS3104 - Enterprise Multi-Layer Security
+! Student: Chiwo Newa (190358)
+! ============================================================
+
+! --- Basic Device Hardening ---
+hostname Branch-Switch
+no ip domain-lookup
+enable secret cisco123
+line console 0
+ password cisco123
+ login
+line vty 0 4
+ password cisco123
+ login
+
+! --- VLAN Definitions ---
+! Four VLANs created for Branch departmental segmentation
+vlan 10
+ name HR
+vlan 20
+ name Finance
+vlan 30
+ name IT
+vlan 40
+ name Guest
+
+! --- Trunk Port to Branch-Router ---
+! e0/0 carries all VLAN traffic to Branch-Router subinterfaces
+interface Ethernet0/0
+ description Trunk-to-Branch-Router
+ switchport trunk encapsulation dot1q
+ switchport mode trunk
+
+! --- Access Ports - End Devices ---
+! Each port assigned to its corresponding VLAN
+interface Ethernet0/1
+ description BR-HR-PC
+ switchport mode access
+ switchport access vlan 10
+interface Ethernet0/2
+ description BR-Finance-PC
+ switchport mode access
+ switchport access vlan 20
+interface Ethernet0/3
+ description BR-IT-PC
+ switchport mode access
+ switchport access vlan 30
+interface Ethernet1/0
+ description BR-Guest-PC
+ switchport mode access
+ switchport access vlan 40
+
+! --- Layer 3 SVIs ---
+! Each SVI provides an IP address for the VLAN subnet
+! ACLs are applied on Branch-Router subinterfaces, not here
+interface Vlan1
+ ip address 192.168.2.2 255.255.255.0
+ no shutdown
+interface Vlan10
+ ip address 192.168.110.1 255.255.255.0
+ no shutdown
+interface Vlan20
+ ip address 192.168.120.1 255.255.255.0
+ no shutdown
+interface Vlan30
+ ip address 192.168.130.1 255.255.255.0
+ no shutdown
+interface Vlan40
+ ip address 192.168.140.1 255.255.255.0
+ no shutdown
+
+! --- Routing ---
+! IP routing enabled for Layer 3 switching capability
+! Default route points to Branch-Router for external traffic
+ip routing
+ip route 0.0.0.0 0.0.0.0 192.168.2.1
+
+! --- Syslog Configuration ---
+logging host 192.168.60.100
+logging trap informational
+logging on
