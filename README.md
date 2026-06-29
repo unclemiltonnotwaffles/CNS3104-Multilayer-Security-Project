@@ -78,3 +78,79 @@ The simulation spans three sites (HQ, Branch, Cloud) with 5 routers/switches and
 ---
 
 ## Repository Structure
+CNS3104-Multilayer-Security-Project/
+
+├── GNS3/
+
+│   └── SME-Security-Lab.gns3project
+
+├── Configs/
+
+│   ├── HQ-Router.txt
+
+│   ├── Branch-Router.txt
+
+│   ├── Cloud-Router.txt
+
+│   ├── HQ-Switch.txt
+
+│   └── Branch-Switch.txt
+
+├── Diagrams/
+
+│   ├── topology.drawio
+
+│   └── topology.png
+
+├── Report/
+
+│   ├── Project-Proposal.pdf
+
+│   └── Final-Report.pdf
+
+├── TestMatrix/
+
+│   └── Security-Test-Matrix.pdf
+
+├── Presentation/
+
+│   └── Defense-Slides.pptx
+
+└── README.md
+---
+
+## Requirements
+
+| Requirement | Details |
+|---|---|
+| GNS3 | Version 2.2.59 or later |
+| GNS3 VM | VirtualBox or VMware |
+| Router Image | c3725-adventerprisek9-mz.124-15.T14 |
+| Switch Image | i86bi-linux-l2-adventerprisek9-15.1b.bin |
+
+> **Note:** Cisco IOS images cannot be redistributed due to licensing restrictions. You must provide your own images and place them in your GNS3 images directory before opening the project.
+
+---
+
+## Known Limitations
+
+- The c3725 IOS image does not include the full IPS signature database. Signatures 2004, 4000 and 4020 are not present in the atomic-ip engine. IPS effectiveness is demonstrated through `show ip ips all` and `show ip ips interfaces`. Full signature-based drop testing requires a Cisco device with an active IPS licence and updated SDF file.
+- IKEv1 with pre-shared keys is used for VPN. IKEv2 and certificate-based authentication are not configured.
+- The design is fully virtual with no physical hardware integration.
+- Redundancy features are omitted to focus on core security controls.
+
+---
+
+## How to Use
+
+1. Clone or download the repository
+2. Install GNS3 2.2.59 and the GNS3 VM
+3. Add the required Cisco IOS images to your GNS3 images directory
+4. Open GNS3 → File → Import portable project → select `SME-Security-Lab.gns3project`
+5. Start all nodes and follow the test matrix to verify security controls
+
+---
+
+## License
+
+This project is licensed under the MIT License — see [LICENSE](LICENSE) for details.
