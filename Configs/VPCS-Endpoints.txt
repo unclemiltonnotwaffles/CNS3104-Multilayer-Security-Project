@@ -1,0 +1,52 @@
+! ============================================================
+! VPCS Endpoint Configurations
+! Device: GNS3 VPCS Nodes
+! Role: End-user simulation nodes for testing
+! Project: CNS3104 - Enterprise Multi-Layer Security
+! Student: Chiwo Newa (190358)
+! ============================================================
+
+! --- HQ Site Endpoints ---
+! Run these commands in each VPCS console
+
+! HQ-HR-PC (VLAN 10 - HR)
+ip 192.168.10.10 192.168.10.254 24
+
+! HQ-Finance-PC (VLAN 20 - Finance)
+ip 192.168.20.10 192.168.20.254 24
+
+! HQ-IT-PC (VLAN 30 - IT)
+ip 192.168.30.10 192.168.30.254 24
+
+! HQ-Guest-PC (VLAN 40 - Guest)
+ip 192.168.40.10 192.168.40.254 24
+
+! HQ-DMZ-PC (VLAN 50 - DMZ)
+ip 192.168.50.10 192.168.50.254 24
+
+! HQ-Mgmt-PC (VLAN 60 - Management)
+ip 192.168.60.10 192.168.60.254 24
+
+! --- Branch Site Endpoints ---
+
+! BR-HR-PC (VLAN 10 - HR)
+ip 192.168.110.10 192.168.110.254 24
+
+! BR-Finance-PC (VLAN 20 - Finance)
+ip 192.168.120.10 192.168.120.254 24
+
+! BR-IT-PC (VLAN 30 - IT)
+ip 192.168.130.10 192.168.130.254 24
+
+! BR-Guest-PC (VLAN 40 - Guest)
+ip 192.168.140.10 192.168.140.254 24
+
+! --- Cloud Site Endpoints ---
+
+! Cloud-Server (Cloud LAN)
+ip 192.168.3.10 192.168.3.1 24
+
+! --- Syslog Server ---
+
+! Syslog-Server (VLAN 60 - Management)
+ip 192.168.60.100 192.168.60.254 24
