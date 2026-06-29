@@ -1,0 +1,77 @@
+! ============================================================
+! Cloud-Router Configuration
+! Device: Cisco c3725 (GNS3 Emulated)
+! Role: Cloud Site Router - VPN, Cloud LAN Gateway
+! Project: CNS3104 - Enterprise Multi-Layer Security
+! Student: Chiwo Newa (190358)
+! ============================================================
+
+! --- Basic Device Hardening ---
+hostname Cloud-Router
+no ip domain-lookup
+enable secret cisco123
+line console 0
+ password cisco123
+ login
+line vty 0 4
+ password cisco123
+ login
+
+! --- WAN Interface ---
+! f0/0 connects to HQ-Router (10.0.1.0/30)
+interface FastEthernet0/0
+ description WAN-to-HQ
+ ip address 10.0.1.2 255.255.255.252
+ no shutdown
+ crypto map VPN-MAP
+
+! --- Cloud LAN Interface ---
+! f0/1 is the gateway for the Cloud server subnet
+interface FastEthernet0/1
+ description Link-to-Cloud-LAN
+ ip address 192.168.3.1 255.255.255.0
+ no shutdown
+
+! --- Static Routing ---
+! Routes to all HQ and Branch subnets via HQ-Router
+ip route 192.168.10.0 255.255.255.0 10.0.1.1
+ip route 192.168.20.0 255.255.255.0 10.0.1.1
+ip route 192.168.30.0 255.255.255.0 10.0.1.1
+ip route 192.168.40.0 255.255.255.0 10.0.1.1
+ip route 192.168.50.0 255.255.255.0 10.0.1.1
+ip route 192.168.60.0 255.255.255.0 10.0.1.1
+ip route 192.168.110.0 255.255.255.0 10.0.1.1
+ip route 192.168.120.0 255.255.255.0 10.0.1.1
+ip route 192.168.130.0 255.255.255.0 10.0.1.1
+ip route 192.168.140.0 255.255.255.0 10.0.1.1
+
+! --- IPsec VPN Configuration ---
+! Phase 1 - ISAKMP Policy
+crypto isakmp policy 10
+ encryption aes 256
+ hash sha
+ authentication pre-share
+ group 2
+ lifetime 86400
+! Pre-shared key for HQ peer
+crypto isakmp key cisco123 address 10.0.1.1
+! Phase 2 - Transform Set
+crypto ipsec transform-set VPN-SET esp-aes 256 esp-sha-hmac
+! Crypto ACL - traffic to encrypt toward HQ
+ip access-list extended VPN-CLOUD-HQ
+ permit ip 192.168.3.0 0.0.0.255 192.168.10.0 0.0.0.255
+ permit ip 192.168.3.0 0.0.0.255 192.168.20.0 0.0.0.255
+ permit ip 192.168.3.0 0.0.0.255 192.168.30.0 0.0.0.255
+ permit ip 192.168.3.0 0.0.0.255 192.168.40.0 0.0.0.255
+ permit ip 192.168.3.0 0.0.0.255 192.168.50.0 0.0.0.255
+ permit ip 192.168.3.0 0.0.0.255 192.168.60.0 0.0.0.255
+! Crypto Map
+crypto map VPN-MAP 10 ipsec-isakmp
+ set peer 10.0.1.1
+ set transform-set VPN-SET
+ match address VPN-CLOUD-HQ
+
+! --- Syslog Configuration ---
+logging host 192.168.60.100
+logging trap informational
+logging on
