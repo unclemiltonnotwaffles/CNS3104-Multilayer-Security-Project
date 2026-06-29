@@ -1,0 +1,165 @@
+! ============================================================
+! HQ-Router Configuration
+! Device: Cisco c3725 (GNS3 Emulated)
+! Role: HQ Edge Router - VPN, IPS, Inter-site Routing
+! Project: CNS3104 - Enterprise Multi-Layer Security
+! Student: Chiwo Newa (190358)
+! ============================================================
+
+! --- Basic Device Hardening ---
+hostname HQ-Router
+no ip domain-lookup
+enable secret cisco123
+line console 0
+ password cisco123
+ login
+line vty 0 4
+ password cisco123
+ login
+
+! --- Router-on-a-Stick Subinterfaces (HQ VLANs) ---
+! f0/0 is the trunk link to HQ-Switch
+! Each subinterface handles one VLAN
+interface FastEthernet0/0
+ no ip address
+interface FastEthernet0/0.1
+ encapsulation dot1q 1 native
+ ip address 192.168.1.1 255.255.255.0
+interface FastEthernet0/0.10
+ encapsulation dot1q 10
+ ip address 192.168.10.254 255.255.255.0
+ ip access-group BLOCK-HR-TO-FINANCE in
+interface FastEthernet0/0.20
+ encapsulation dot1q 20
+ ip address 192.168.20.254 255.255.255.0
+ ip access-group BLOCK-FINANCE-TO-HR in
+interface FastEthernet0/0.30
+ encapsulation dot1q 30
+ ip address 192.168.30.254 255.255.255.0
+interface FastEthernet0/0.40
+ encapsulation dot1q 40
+ ip address 192.168.40.254 255.255.255.0
+ ip access-group GUEST-RESTRICT in
+interface FastEthernet0/0.50
+ encapsulation dot1q 50
+ ip address 192.168.50.254 255.255.255.0
+interface FastEthernet0/0.60
+ encapsulation dot1q 60
+ ip address 192.168.60.254 255.255.255.0
+
+! --- WAN Interfaces ---
+! f0/1 connects to Branch-Router (10.0.0.0/30)
+! f1/0 connects to Cloud-Router (10.0.1.0/30)
+interface FastEthernet0/1
+ description WAN-to-Branch
+ ip address 10.0.0.1 255.255.255.252
+ no shutdown
+ crypto map VPN-MAP
+interface FastEthernet1/0
+ description WAN-to-Cloud
+ ip address 10.0.1.1 255.255.255.252
+ no shutdown
+ crypto map VPN-MAP
+
+! --- Static Routing ---
+! Routes to Branch VLANs via Branch-Router
+ip route 192.168.110.0 255.255.255.0 10.0.0.2
+ip route 192.168.120.0 255.255.255.0 10.0.0.2
+ip route 192.168.130.0 255.255.255.0 10.0.0.2
+ip route 192.168.140.0 255.255.255.0 10.0.0.2
+! Route to Cloud LAN via Cloud-Router
+ip route 192.168.3.0 255.255.255.0 10.0.1.2
+
+! --- Access Control Lists ---
+! Block HR from reaching Finance in both directions
+ip access-list extended BLOCK-HR-TO-FINANCE
+ deny ip 192.168.10.0 0.0.0.255 192.168.20.0 0.0.0.255
+ permit ip any any
+ip access-list extended BLOCK-FINANCE-TO-HR
+ deny ip 192.168.20.0 0.0.0.255 192.168.10.0 0.0.0.255
+ permit ip any any
+! Restrict Guest VLAN to internet only - no internal access
+ip access-list extended GUEST-RESTRICT
+ deny ip 192.168.40.0 0.0.0.255 192.168.10.0 0.0.0.255
+ deny ip 192.168.40.0 0.0.0.255 192.168.20.0 0.0.0.255
+ deny ip 192.168.40.0 0.0.0.255 192.168.30.0 0.0.0.255
+ deny ip 192.168.40.0 0.0.0.255 192.168.50.0 0.0.0.255
+ deny ip 192.168.40.0 0.0.0.255 192.168.60.0 0.0.0.255
+ deny ip 192.168.40.0 0.0.0.255 192.168.110.0 0.0.0.255
+ deny ip 192.168.40.0 0.0.0.255 192.168.120.0 0.0.0.255
+ deny ip 192.168.40.0 0.0.0.255 192.168.130.0 0.0.0.255
+ deny ip 192.168.40.0 0.0.0.255 192.168.140.0 0.0.0.255
+ deny ip 192.168.40.0 0.0.0.255 192.168.3.0 0.0.0.255
+ permit ip any any
+
+! --- IPsec VPN Configuration ---
+! Phase 1 - ISAKMP Policy (AES-256, SHA, Pre-shared key, DH Group 2)
+crypto isakmp policy 10
+ encryption aes 256
+ hash sha
+ authentication pre-share
+ group 2
+ lifetime 86400
+! Pre-shared keys for each VPN peer
+crypto isakmp key cisco123 address 10.0.0.2
+crypto isakmp key cisco123 address 10.0.1.2
+! Phase 2 - Transform Set (AES-256 encryption, SHA HMAC integrity)
+crypto ipsec transform-set VPN-SET esp-aes 256 esp-sha-hmac
+! Crypto ACL - defines traffic to encrypt for HQ-Branch tunnel
+ip access-list extended VPN-HQ-BRANCH
+ permit ip 192.168.10.0 0.0.0.255 192.168.110.0 0.0.0.255
+ permit ip 192.168.10.0 0.0.0.255 192.168.120.0 0.0.0.255
+ permit ip 192.168.10.0 0.0.0.255 192.168.130.0 0.0.0.255
+ permit ip 192.168.10.0 0.0.0.255 192.168.140.0 0.0.0.255
+ permit ip 192.168.20.0 0.0.0.255 192.168.110.0 0.0.0.255
+ permit ip 192.168.20.0 0.0.0.255 192.168.120.0 0.0.0.255
+ permit ip 192.168.20.0 0.0.0.255 192.168.130.0 0.0.0.255
+ permit ip 192.168.20.0 0.0.0.255 192.168.140.0 0.0.0.255
+ permit ip 192.168.30.0 0.0.0.255 192.168.110.0 0.0.0.255
+ permit ip 192.168.30.0 0.0.0.255 192.168.120.0 0.0.0.255
+ permit ip 192.168.30.0 0.0.0.255 192.168.130.0 0.0.0.255
+ permit ip 192.168.30.0 0.0.0.255 192.168.140.0 0.0.0.255
+ permit ip 192.168.40.0 0.0.0.255 192.168.110.0 0.0.0.255
+ permit ip 192.168.40.0 0.0.0.255 192.168.120.0 0.0.0.255
+ permit ip 192.168.40.0 0.0.0.255 192.168.130.0 0.0.0.255
+ permit ip 192.168.40.0 0.0.0.255 192.168.140.0 0.0.0.255
+ permit ip 192.168.50.0 0.0.0.255 192.168.110.0 0.0.0.255
+ permit ip 192.168.50.0 0.0.0.255 192.168.120.0 0.0.0.255
+ permit ip 192.168.50.0 0.0.0.255 192.168.130.0 0.0.0.255
+ permit ip 192.168.50.0 0.0.0.255 192.168.140.0 0.0.0.255
+ permit ip 192.168.60.0 0.0.0.255 192.168.110.0 0.0.0.255
+ permit ip 192.168.60.0 0.0.0.255 192.168.120.0 0.0.0.255
+ permit ip 192.168.60.0 0.0.0.255 192.168.130.0 0.0.0.255
+ permit ip 192.168.60.0 0.0.0.255 192.168.140.0 0.0.0.255
+! Crypto ACL - defines traffic to encrypt for HQ-Cloud tunnel
+ip access-list extended VPN-HQ-CLOUD
+ permit ip 192.168.10.0 0.0.0.255 192.168.3.0 0.0.0.255
+ permit ip 192.168.20.0 0.0.0.255 192.168.3.0 0.0.0.255
+ permit ip 192.168.30.0 0.0.0.255 192.168.3.0 0.0.0.255
+ permit ip 192.168.50.0 0.0.0.255 192.168.3.0 0.0.0.255
+ permit ip 192.168.60.0 0.0.0.255 192.168.3.0 0.0.0.255
+! Crypto Map - ties ACL, transform set and peer together
+crypto map VPN-MAP 10 ipsec-isakmp
+ set peer 10.0.0.2
+ set transform-set VPN-SET
+ match address VPN-HQ-BRANCH
+crypto map VPN-MAP 20 ipsec-isakmp
+ set peer 10.0.1.2
+ set transform-set VPN-SET
+ match address VPN-HQ-CLOUD
+
+! --- IOS IPS Configuration ---
+! IPS engine configured to inspect all inbound WAN traffic
+ip ips config location flash:ips
+ip ips name IPS-RULE
+ip ips signature-category
+ category all
+  retired true
+ category ios_ips basic
+  retired false
+
+! --- Syslog Configuration ---
+! Forward all informational and above events to Syslog server
+logging host 192.168.60.100
+logging trap informational
+logging on
